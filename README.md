@@ -2,7 +2,8 @@
 
 This will probably be badly formatted cuz I have no idea how this works. Hopefully will improve it later.
 
-My goal with this is to make a program with the same or nearly the same functionality as a program called WhatPulse.
+My goal with this is to make a program with the same or nearly the same functionality as a program called WhatPulse. It should monitor your inputs anywhere except if you are using a program with administrator privelages such as genshin impact.
+
 The features that WhatPulse Alternative currently have are:
 * Monitoring the number of keyboard presses
 * Monitoring the number of left clicks
@@ -22,7 +23,8 @@ The features that WhatPulse Alternative currently have are:
 - Click on "Edit"->"New"->"String Value" from the toolbar. Name that whatever you want but preferably "WhatPulse Alternative".
 - Double click the string value that you just made and paste what you copied from the shortcut in the "Value data:" field.
 
-**Usage Guide:** Gonna do this later.
+**Usage Guide:**
+When the program runs it adds itself to the system tray (that thing on the bottom right of your screen where steam or other game launchers run there). All you need to do is double click it or right click then choose "Show Stats". After that, a window will open showing all of your stats. The stats window does not update automatically so to update it you either click the "Refresh" button or just re-open the window. Closing the stats window will not close the program itself. The program will stay working in the background. To stop the program from running, right click on it from the system tray and choose "Quit".
 
-**FAQ:**
-- idk, no question was frequent.
+**Known Issues:**
+- Lagging when opening the stats window for the first time.
