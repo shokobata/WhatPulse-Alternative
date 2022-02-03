@@ -13,7 +13,7 @@ The features that WhatPulse Alternative currently have are:
 * A GUI to display all of the data mentioned above
 
 **Installation Instructions:**
-- Download and install python. Just lookup any youtube tutorial to do that.
+- Download and install python. Make sure to check the box that says "add python 3.x to PATH" before installing.
 - Open the command prompt and run the following commands. `pip install infi.systray`, `pip install pynput`, `pip install tendo`, and finally `pip install PySimpleGUI`.
 - Download all the files by clicking on the green button labeled "Code" and then clicking on "Download ZIP".
 - Unzip the download zip file in the folder where you want the program to be.
