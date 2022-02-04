@@ -1,25 +1,25 @@
-# last edited 30-1-2022
+# last edited 4-2-2022
 import threading, json, time, Windows, os
 from infi.systray import SysTrayIcon
 from pynput import mouse, keyboard
 from tendo import singleton
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(os.path.dirname(os.path.abspath(__file__))) # changing the working directory to the directory where the script is
 
 Me = singleton.SingleInstance() # To prevent multiple instances from running at the same time
 Lock = threading.Lock()
 
 class VariablesClass():
 	def __init__(self):
-		with open("Data.json") as File:
+		with open("Data.json") as File: # read the data from the file and assign variables to it
 			Data = json.loads(File.read())
 			self.LeftMouseClicks = Data["Left Clicks"]
 			self.RightMouseClicks = Data["Right Clicks"]
 			self.MiddleMouseClicks = Data["Middle Clicks"]
 			self.MouseScrolls = Data["Scrolls"]
 			self.KeyPresses = Data["Key Presses"]
-			self.LastLeftMouseClicksValue = self.LeftMouseClicks # Need those variables so that I can throttle how many times it saves to
-			self.LastRightMouseClicksValue = self.RightMouseClicks # the file
+			self.LastLeftMouseClicksValue = self.LeftMouseClicks # Need those variables so that I can throttle how many times it saves to the file
+			self.LastRightMouseClicksValue = self.RightMouseClicks
 			self.LastMiddleMouseClicksValue = self.MiddleMouseClicks
 			self.LastMouseScrollsValue = self.MouseScrolls
 			self.LastKeyPressesValue = self.KeyPresses
@@ -31,11 +31,11 @@ def Quit(systray):
 # thats what I used.
 
 def ShowStats(systray):
-	Windows.StartStatsWindow()
+	Windows.OpenStatsWindow()
 
 def Save():
-	Lock.acquire()
-	with open("Data.json", "w") as File:
+	Lock.acquire() # using lock here becuase this function is called from two different threads which can lead to a race condition
+	with open("Data.json", "w") as File: # opening and writing data in the file
 		Data = {}
 		Data["Left Clicks"] = Variables.LeftMouseClicks
 		Data["Right Clicks"] = Variables.RightMouseClicks
@@ -83,7 +83,7 @@ def InitializeKeyboard():
 
 	with keyboard.Listener(on_release=OnRelease) as KeyboardListener:
 		KeyboardListener.join()
-
+# Launching the system tray
 menu_options = (("Show Stats", None, ShowStats),)
 systray = SysTrayIcon("icon.ico", "Whatpulse Alternative", menu_options, on_quit=Quit)
 systray.start()
