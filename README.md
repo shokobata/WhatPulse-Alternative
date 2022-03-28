@@ -10,6 +10,7 @@ The features that WhatPulse Alternative currently have are:
 * Monitoring the number of right clicks
 * Monitoring the number of middle mouse button clicks
 * Monitoring the number of scrolls (Each click when using the scroll wheel)
+* Monitoring the most used keyboard letter
 * A GUI to display all of the data mentioned above
 
 **Installation Instructions:**
