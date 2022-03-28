@@ -18,7 +18,7 @@ The features that WhatPulse Alternative currently have are:
 - Download all the files by clicking on the green button labeled "Code" and then clicking on "Download ZIP".
 - Unzip the download zip file in the folder where you want the program to be.
 - Delete "README.md" because it is useless now.
-- Open the command prompt in the folder where your downloaded files are and then run the following command. `pip install -r requirements.txt`.
+- Open the command prompt in the folder where your downloaded files are and then run the following command: `pip install -r requirements.txt`.
 - Now you are basically done. You can run the "main.py" file for the program to run. **Only follow the next steps if you want the program to run on startup**, in other words, if you want the program to run everytime your computers is turned on.
 - Right click on the "main.pyw" file and click on "Create shortcut".
 - Press the windows key and r simultaneously. A window will popup. Type `shell:startup` and press enter. Finally, put the "main.pyw" shortcut you created earlier in the startup folder that you just opened using the run window.
