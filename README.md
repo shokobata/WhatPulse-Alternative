@@ -14,10 +14,10 @@ The features that WhatPulse Alternative currently have are:
 
 **Installation Instructions:**
 - Download and install python. Make sure to check the box that says "add python 3.x to PATH" before installing.
-- Open the command prompt in the folder where your downloaded files are and then run the following command. `pip install -r requirements.txt`.
 - Download all the files by clicking on the green button labeled "Code" and then clicking on "Download ZIP".
 - Unzip the download zip file in the folder where you want the program to be.
 - Delete "README.md" because it is useless now.
+- Open the command prompt in the folder where your downloaded files are and then run the following command. `pip install -r requirements.txt`.
 - Now you are basically done. You can run the "main.py" file for the program to run. **Only follow the next steps if you want the program to run on startup**, in other words, if you want the program to run everytime your computers is turned on.
 - Right click on the "main.py" file and click on "Create shortcut".
 - Right click on the shortcut you just created and click on "Properties". After that, copy the file path in the "Target:" field and delete the shortcut since you won't need it anymore.
