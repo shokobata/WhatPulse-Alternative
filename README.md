@@ -1,6 +1,6 @@
 # WhatPulse-Alternative
 
-This will probably be badly formatted cuz I have no idea how this works. Hopefully I will improve it later.
+This will probably be badly written and formatted cuz I have no idea how this works. Hopefully I will improve it later.
 
 My goal with this is to make a program with the same or nearly the same functionality as a program called WhatPulse. It should monitor your inputs anywhere except if you are using a program with administrator privelages such as genshin impact.
 
