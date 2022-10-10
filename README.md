@@ -11,6 +11,8 @@ The features that WhatPulse Alternative currently have are:
 * Monitoring the number of middle mouse button clicks
 * Monitoring the number of scrolls (Each click when using the scroll wheel)
 * Monitoring the most used keyboard letter
+* Monitoring of daily metrics separate from lifetime.
+* Manual reset function for daily metrics (it'll automatically reset on next date regardless)
 * A GUI to display all of the data mentioned above
 * A backup system
 
@@ -26,6 +28,8 @@ The features that WhatPulse Alternative currently have are:
 
 **Usage Guide:**
 When the program runs it adds itself to the system tray (that thing on the bottom right of your screen where steam or other game launchers run there). All you need to do is double click it or right click then choose "Show Stats". After that, a window will open showing all of your stats. Closing the stats window will not close the program itself. The program will stay working in the background. To stop the program from running, right click on it from the system tray and choose "Quit".
+
+**Warning:** Daily metrics will reset everyday, CMD dialogs will pop up for couple of seconds during midnight hours to let you know or first boot of the next day or when clicking the 'Reset" button in the GUI. You can remove the time.sleep() line in reset.py to reduce delay.
 
 **Known Issues:**
 - Lagging when opening the stats window for the first time.
