@@ -1,7 +1,8 @@
+# last edited 10-10-2022
 # last edited 3-3-2022
 import PySimpleGUI as sg
-import json, time, threading, os
-
+import json, time, threading, os, signal
+from datetime import datetime
 sg.theme('DarkAmber')
 
 StatsOpen = False
@@ -11,7 +12,7 @@ def OpenStatsWindow():
 
     if StatsOpen == False: # check if the window is already open
         StatsOpen = True
-
+        
         with open("Data.json") as File: # read the data from the file and assign variables to it
             Data = json.loads(File.read())
             LeftMouseClicks = Data["Left Clicks"]
@@ -21,21 +22,41 @@ def OpenStatsWindow():
             KeyPresses = Data["Key Presses"]
             Letters = Data["Letters"]
 
+        with open("DailyData.json") as DFile: # read the data from the file and assign variables to it
+            DData = json.loads(DFile.read())
+            DLeftMouseClicks = DData["Today's LClicks"]
+            DRightMouseClicks = DData["Today's RClicks"]
+            DMiddleMouseClicks = DData["Today's MClicks"]
+            DMouseScrolls = DData["Today's Scrolls"]
+            DKeyPresses = DData["Today's KeyPress"]
+            DLetters = DData["Today's letter"]
+
         # the layout of the window
         col1=[[sg.Image("Mouse.png")], 
                 [sg.Text("Left Clicks: "+"{:,}".format(LeftMouseClicks), key="_LeftClicks_", size=(18,1))],
                 [sg.Text("Right Clicks: "+"{:,}".format(RightMouseClicks), key="_RightClicks_", size=(18,1))],
                 [sg.Text("Middle Clicks: "+"{:,}".format(MiddleMouseClicks), key="_MiddleClicks_", size=(18,1))],
-                [sg.Text("Scrolls: "+"{:,}".format(MouseScrolls), key="_Scrolls_", size=(18,1))]]
+                [sg.Text("Scrolls: "+"{:,}".format(MouseScrolls), key="_Scrolls_", size=(18,1))],
+                [sg.Text("Today's LClicks: " + "{:,}".format(DLeftMouseClicks), key="_DLeftClicks_", size=(18, 1))],
+                [sg.Text("Today's RClicks: " + "{:,}".format(DRightMouseClicks), key="_DRightClicks_", size=(18, 1))],
+                [sg.Text("Today's MClicks: " + "{:,}".format(DMiddleMouseClicks), key="_DMiddleClicks_", size=(18, 1))],
+                [sg.Text("Today's Scrolls: " + "{:,}".format(DMouseScrolls), key="_DScrolls_", size=(18, 1))]]
         col2=[ [sg.Image("Keyboard.png")],
-                [sg.Text("Key Presses: "+"{:,}".format(KeyPresses), key="_KeyPresses_", size=(18,1))],
-                [sg.Text("Most Pressed letter: "+max(Letters, key=Letters.get).upper(), key="_Letters_", size=(18,1))] ]
+                [sg.Text("Key Presses: "+"{:,}".format(KeyPresses), key="_KeyPresses_", size=(21,1))],
+                [sg.Text("Most Pressed letter: "+max(Letters, key=Letters.get).upper(), key="_Letters_", size=(21,1))],
+                [sg.Text("")],
+                [sg.Text("")],
+                [sg.Text("Today's KeyPress: "+"{:,}".format(DKeyPresses), key="_DKeyPresses_", size=(21,1))],
+                [sg.Text("Today's letter: "+max(DLetters, key=DLetters.get).upper(), key="_DLetters_", size=(21,1))],
+                [sg.Text("Reset", text_color="red")],
+                [sg.Text("will reset Today's data")] ]
+
 
         layout = [
-            [sg.Column(col1, element_justification='c', justification="center"), sg.Column(col2, element_justification='c', justification="center")]
+            [sg.Column(col1, element_justification='c', justification="center"), sg.Column(col2, element_justification='c', justification="center", pad=(0,0)), sg.Button("Reset", button_color=("white","red"), pad=(0,0))]
         ]
 
-        window = sg.Window('WhatPulse Alternative v9', layout, use_default_focus=False, finalize=True) # showing the window
+        window = sg.Window('WhatPulse Alternative v10', layout, use_default_focus=False, finalize=True) # showing the window
 
         def UpdateWindow():
             StartTime = time.time() # Initial time
@@ -50,14 +71,31 @@ def OpenStatsWindow():
                         MouseScrolls = Data["Scrolls"]
                         KeyPresses = Data["Key Presses"]
                         Letters = Data["Letters"]
+
+                    with open("DailyData.json") as File: # read the data from the file and assign variables to it
+                        DData = json.loads(File.read()) #BUG: This will sometimes error because it apparently finds the file empty possibly because the other script it writing to it. Fix by adding a try except statement or maybe making a module manage the saving?
+                        DLeftMouseClicks = DData["Today's LClicks"]
+                        DRightMouseClicks = DData["Today's RClicks"]
+                        DMiddleMouseClicks = DData["Today's MClicks"]
+                        DMouseScrolls = DData["Today's Scrolls"]
+                        DLetters = DData["Today's letter"]
+                        DKeyPresses = DData["Today's KeyPress"]
+
+
                     # updating the window text
                     try: # Handling exceptions because I can't fix the errors permenantly
-                        window["_KeyPresses_"].update("Key Presses: "+"{:,}".format(KeyPresses)) 
+                        window["_KeyPresses_"].update("Key Presses: "+"{:,}".format(KeyPresses))
                         window["_LeftClicks_"].update("Left Clicks: "+"{:,}".format(LeftMouseClicks))
                         window["_MiddleClicks_"].update("Middle Clicks: "+"{:,}".format(MiddleMouseClicks))
                         window["_RightClicks_"].update("Right Clicks: "+"{:,}".format(RightMouseClicks))
                         window["_Scrolls_"].update("Scrolls: "+"{:,}".format(MouseScrolls))
                         window["_Letters_"].update("Most Pressed letter: "+max(Letters, key=Letters.get).upper())
+                        window["_DKeyPresses_"].update("Today's KeyPress: " + "{:,}".format(DKeyPresses))
+                        window["_DLeftClicks_"].update("Today's LClicks: "+"{:,}".format(DLeftMouseClicks))
+                        window["_DMiddleClicks_"].update("Today's MClicks: "+"{:,}".format(DMiddleMouseClicks))
+                        window["_DRightClicks_"].update("Today's RClicks: "+"{:,}".format(DRightMouseClicks))
+                        window["_DScrolls_"].update("Today's Scrolls: "+"{:,}".format(DMouseScrolls))
+                        window["_DLetters_"].update("Today's letter: "+max(DLetters, key=DLetters.get).upper())
                     except NameError:
                         continue
                     except RuntimeError:
@@ -74,5 +112,15 @@ def OpenStatsWindow():
             if event == sg.WIN_CLOSED: # check if the window is closed
                 StatsOpen = False
                 break
+            if event == 'Reset': # evokes reset.py to reset values when 'Reset' button is called.
+                if sg.popup_yes_no("Reset Today's values?") == 'Yes':
+                    with open("getpid.txt",  encoding = 'utf-8') as f:
+                        pid = f.read()
+                        pidint = int(pid) # get main.py process id
+                        os.system("start cmd /c python reset.py")
+                        os.kill(pidint, signal.SIGTERM) # kill main.py
+                StatsOpen = True
+
+
             
         window.close(); del window # "The delete helps with a problem multi-threaded application encounter where tkinter complains that it is being called from the wrong thread (not the program's main thread)", I don't think it helped tho.
