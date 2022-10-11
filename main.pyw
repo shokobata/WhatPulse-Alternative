@@ -1,10 +1,9 @@
 # last edited 10-10-2022
-import threading, json, Windows, os, tendo, ctypes
+import threading, json, Windows, os, tendo, ctypes, reset
 from infi.systray import SysTrayIcon
 from pynput import mouse, keyboard
 from tendo import singleton
 from datetime import date
-import time
 
 os.chdir(
     os.path.dirname(os.path.abspath(__file__)))  # changing the working directory to the directory where the script is
@@ -13,16 +12,9 @@ try:
     Me = singleton.SingleInstance()  # To prevent multiple instances from running at the same time
 except tendo.singleton.SingleInstanceException:
     Windows.OpenStatsWindow()  # BUG: I think this is better than nothing happening but this causes a minor bug which is that 2 stats windows can be opened at the same time. Like if this got executed and then the user clicked on "Show stats". Consider fixing it by somehow telling the already running script to show the stats window. I will be ignoring this bug for now.
+    reset.File()
+    reset.DateAndFile()
     exit()
-
-    
-try:
-    pid = os.getpid()
-    pidstr = str(pid)
-    with open("getpid.txt", 'w+') as File:
-        File.write(pidstr)
-except Exception as e:
-    pass
 
 
 Lock = threading.Lock()  # used later to prevent a race condition from occuring.
@@ -43,15 +35,17 @@ def ResetValues(): # Recovers Date from the file and resets if date isn't concur
     threading.Timer(5.0, ResetValues).start()
     datevar = date.today()
     todaydate = str(datevar)
-    with open('DailyData.json', encoding='utf8') as loaddate:
-        myDict = json.load(loaddate)
-        datescope = myDict["Date"]
-    if todaydate == datescope:
+    try:
+        with open('DailyData.json', encoding='utf8') as loaddate:
+            myDict = json.load(loaddate)
+            datescope = myDict["Date"]
+        if todaydate == datescope:
+            pass
+        else:
+            reset.DateAndFile()
+            os._exit(1)
+    except json.JSONDecodeError:
         pass
-    else:
-        os.system("start cmd /c python reset.py")
-        os._exit(1)
-
 
 ResetValues()
 
@@ -105,12 +99,13 @@ class DailyVariablesClass():
         try:
             with open("DailyData.json") as DFile:  # read the data from the file and assign variables to it
                 DData = json.loads(DFile.read())
+                DFile.close()
                 self.DLeftMouseClicks = DData["Today's LClicks"]
                 self.DRightMouseClicks = DData["Today's RClicks"]
                 self.DMiddleMouseClicks = DData["Today's MClicks"]
                 self.DMouseScrolls = DData["Today's Scrolls"]
                 self.DKeyPresses = DData["Today's KeyPress"]
-                self.DLetters = DData["Today's letter"]
+                self.DLetters = DData["Today's Letters"]
                 self.DDate = DData["Date"]
                 # Need those variables so that I can throttle how many times it saves to the file
                 self.DLastLeftMouseClicksValue = self.DLeftMouseClicks
@@ -121,6 +116,8 @@ class DailyVariablesClass():
                 self.DLastDateValue = self.DDate
             with open("DailyData.backup", "w") as DFile:
                 DFile.write(json.dumps(DData, indent=4))
+                DFile.flush()
+                DFile.close()
         except:
             with open("DailyData.backup") as DFile:  # read the data from the file and assign variables to it
                 DData = json.loads(DFile.read())
@@ -133,7 +130,7 @@ class DailyVariablesClass():
                 self.DMiddleMouseClicks = DData["Today's MClicks"]
                 self.DMouseScrolls = DData["Today's Scrolls"]
                 self.DKeyPresses = DData["Today's KeyPress"]
-                self.DLetters = DData["Today's letter"]
+                self.DLetters = DData["Today's Letters"]
                 self.DDate = DData["Date"]
                 # Need those variables so that I can throttle how many times it saves to the file
                 self.DLastLeftMouseClicksValue = self.DLeftMouseClicks
@@ -180,34 +177,11 @@ def Dsav():
             DData["Today's MClicks"] = DVariables.DMiddleMouseClicks
             DData["Today's Scrolls"] = DVariables.DMouseScrolls
             DData["Today's KeyPress"] = DVariables.DKeyPresses
-            DData["Today's letter"] = DVariables.DLetters
+            DData["Today's Letters"] = DVariables.DLetters
             DData["Date"] = DVariables.DDate
             DFile.write(json.dumps(DData, indent=4))
-
-
-def DailyInitializeMouse():
-    def DailyOnClick(x, y, button, pressed):
-        if pressed:
-            if button == button.left:  # check if its a left click
-                DVariables.DLeftMouseClicks += 1
-                DVariables.DLastLeftMouseClicksValue = DVariables.DLeftMouseClicks
-                Dsav()
-            if button == button.right:  # check if its a right click
-                DVariables.DRightMouseClicks += 1
-                DVariables.DLastRightMouseClicksValue = DVariables.DRightMouseClicks
-                Dsav()
-            if button == button.middle:  # check if its a middle click
-                DVariables.DMiddleMouseClicks += 1
-                DVariables.DLastMiddleMouseClicksValue = DVariables.DMiddleMouseClicks
-                Dsav()
-
-    def DailyOnScroll(x, y, dx, dy):
-        DVariables.DMouseScrolls += 1
-        DVariables.DLastMouseScrollsValue = DVariables.DMouseScrolls
-        Dsav()
-
-    with mouse.Listener(on_click=DailyOnClick, on_scroll=DailyOnScroll) as listener:
-        listener.join()
+            DFile.flush()
+            DFile.close()
 
 
 def InitializeMouse():
@@ -217,53 +191,52 @@ def InitializeMouse():
                 Variables.LeftMouseClicks += 1
                 Variables.LastLeftMouseClicksValue = Variables.LeftMouseClicks
                 Save()
+                DVariables.DLeftMouseClicks += 1
+                DVariables.DLastLeftMouseClicksValue = DVariables.DLeftMouseClicks
+                Dsav()
             if button == button.right:  # check if its a right click
                 Variables.RightMouseClicks += 1
                 Variables.LastRightMouseClicksValue = Variables.RightMouseClicks
                 Save()
+                DVariables.DRightMouseClicks += 1
+                DVariables.DLastRightMouseClicksValue = DVariables.DRightMouseClicks
+                Dsav()
             if button == button.middle:  # check if its a middle click
                 Variables.MiddleMouseClicks += 1
                 Variables.LastMiddleMouseClicksValue = Variables.MiddleMouseClicks
                 Save()
+                DVariables.DMiddleMouseClicks += 1
+                DVariables.DLastMiddleMouseClicksValue = DVariables.DMiddleMouseClicks
+                Dsav()
 
     def OnScroll(x, y, dx, dy):
         Variables.MouseScrolls += 1
         Variables.LastMouseScrollsValue = Variables.MouseScrolls
         Save()
+        DVariables.DMouseScrolls += 1
+        DVariables.DLastMouseScrollsValue = DVariables.DMouseScrolls
+        Dsav()
 
     with mouse.Listener(on_click=OnClick, on_scroll=OnScroll) as listener:
         listener.join()
-
-
-def DailyInitializeKeyboard():
-    def DailyOnRelease(key):
-
-        DVariables.DKeyPresses += 1
-        # determine if a letter has been pressed and increase the count for that specific letter
-        key = str(key).lower()
-        if len(key) == 3:
-            if key[1].isalpha() and key[1] in DVariables.DLetters:
-                DVariables.DLetters[key[1]] += 1
-
-        DVariables.DLastKeyPressesValue = DVariables.DKeyPresses  # hold a key for a while it will register multiple key presses but you
-        Dsav()  # can only release a key once after pressing it.
-
-    with keyboard.Listener(on_release=DailyOnRelease) as KeyboardListener:
-        KeyboardListener.join()
 
 
 def InitializeKeyboard():
     def OnRelease(key):
 
         Variables.KeyPresses += 1
+        DVariables.DKeyPresses += 1
         # determine if a letter has been pressed and increase the count for that specific letter
         key = str(key).lower()
         if len(key) == 3:
             if key[1].isalpha() and key[1] in Variables.Letters:
                 Variables.Letters[key[1]] += 1
-
+            if key[1].isalpha() and key[1] in DVariables.DLetters:
+                DVariables.DLetters[key[1]] += 1
         Variables.LastKeyPressesValue = Variables.KeyPresses  # hold a key for a while it will register multiple key presses but you
         Save()  # can only release a key once after pressing it.
+        DVariables.DLastKeyPressesValue = DVariables.DKeyPresses  # hold a key for a while it will register multiple key presses but you
+        Dsav()  # can only release a key once after pressing it.
 
     with keyboard.Listener(on_release=OnRelease) as KeyboardListener:
         KeyboardListener.join()
@@ -271,15 +244,17 @@ def InitializeKeyboard():
 
 # Launching the system tray
 menu_options = (("Show Stats", None, ShowStats),)
-systray = SysTrayIcon("icon.ico", "Whatpulse Alternative v10", menu_options, on_quit=Quit)
+systray = SysTrayIcon("icon.ico", "Whatpulse Alternative v11", menu_options, on_quit=Quit)
 systray.start()
 
-DailyMouseThread = threading.Thread(target=DailyInitializeMouse, args=())  # Create a thread for the mouse (daily), or merge with non-daily
-DailyKeyboardThread = threading.Thread(target=DailyInitializeKeyboard, args=())  # Create a thread for the keyboard (daily), or merge with non-daily
 MouseThread = threading.Thread(target=InitializeMouse, args=())  # Create a thread for the mouse
 KeyboardThread = threading.Thread(target=InitializeKeyboard, args=())  # Create a thread for the keyboard
-# start all threads
-DailyMouseThread.start()
-DailyKeyboardThread.start()
+
+# start both threads
 MouseThread.start()
 KeyboardThread.start()
+MouseThread.join()
+KeyboardThread.join()
+
+
+
