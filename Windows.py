@@ -1,8 +1,6 @@
 # last edited 10-10-2022
-# last edited 3-3-2022
 import PySimpleGUI as sg
-import json, time, threading, os, signal
-from datetime import datetime
+import json, time, threading, os, reset
 sg.theme('DarkAmber')
 
 StatsOpen = False
@@ -29,7 +27,7 @@ def OpenStatsWindow():
             DMiddleMouseClicks = DData["Today's MClicks"]
             DMouseScrolls = DData["Today's Scrolls"]
             DKeyPresses = DData["Today's KeyPress"]
-            DLetters = DData["Today's letter"]
+            DLetters = DData["Today's Letters"]
 
         # the layout of the window
         col1=[[sg.Image("Mouse.png")], 
@@ -44,42 +42,50 @@ def OpenStatsWindow():
         col2=[ [sg.Image("Keyboard.png")],
                 [sg.Text("Key Presses: "+"{:,}".format(KeyPresses), key="_KeyPresses_", size=(21,1))],
                 [sg.Text("Most Pressed letter: "+max(Letters, key=Letters.get).upper(), key="_Letters_", size=(21,1))],
-                [sg.Text("")],
-                [sg.Text("")],
                 [sg.Text("Today's KeyPress: "+"{:,}".format(DKeyPresses), key="_DKeyPresses_", size=(21,1))],
                 [sg.Text("Today's letter: "+max(DLetters, key=DLetters.get).upper(), key="_DLetters_", size=(21,1))],
+                [sg.Text("")],
                 [sg.Text("Reset", text_color="red")],
-                [sg.Text("will reset Today's data")] ]
+                [sg.Text("will reset Today's data")],
+                [sg.pin(sg.Button("Reset", button_color=("white","red"))), sg.pin(sg.Button("Today's", button_color=("white","green"))), sg.pin(sg.Button("Lifetime", button_color=("white","green")))]]
 
 
         layout = [
-            [sg.Column(col1, element_justification='c', justification="center"), sg.Column(col2, element_justification='c', justification="center", pad=(0,0)), sg.Button("Reset", button_color=("white","red"), pad=(0,0))]
+            [sg.Column(col1, element_justification='c', justification="center"), sg.Column(col2, element_justification='c', justification="center", pad=(0,0))]
         ]
 
-        window = sg.Window('WhatPulse Alternative v10', layout, use_default_focus=False, finalize=True) # showing the window
+        window = sg.Window('WhatPulse Alternative v11', layout, use_default_focus=False, finalize=True) # showing the window
 
         def UpdateWindow():
             StartTime = time.time() # Initial time
             while True:
                 if time.time() - StartTime >= 1 and StatsOpen: # Check if 1 second passed then update the window
                     StartTime = time.time() # Reset initial time
-                    with open("Data.json") as File: # read the data from the file and assign variables to it
-                        Data = json.loads(File.read()) #BUG: This will sometimes error because it apparently finds the file empty possibly because the other script it writing to it. Fix by adding a try except statement or maybe making a module manage the saving?
-                        LeftMouseClicks = Data["Left Clicks"]
-                        RightMouseClicks = Data["Right Clicks"]
-                        MiddleMouseClicks = Data["Middle Clicks"]
-                        MouseScrolls = Data["Scrolls"]
-                        KeyPresses = Data["Key Presses"]
-                        Letters = Data["Letters"]
+                    try:
+                        with open("Data.json") as File: # read the data from the file and assign variables to it
+                            Data = json.loads(File.read()) #BUG: This will sometimes error because it apparently finds the file empty possibly because the other script it writing to it. Fix by adding a try except statement or maybe making a module manage the saving?
+                            File.close()
+                            LeftMouseClicks = Data["Left Clicks"]
+                            RightMouseClicks = Data["Right Clicks"]
+                            MiddleMouseClicks = Data["Middle Clicks"]
+                            MouseScrolls = Data["Scrolls"]
+                            KeyPresses = Data["Key Presses"]
+                            Letters = Data["Letters"]
+                    except json.JSONDecodeError:
+                        pass
 
-                    with open("DailyData.json") as File: # read the data from the file and assign variables to it
-                        DData = json.loads(File.read()) #BUG: This will sometimes error because it apparently finds the file empty possibly because the other script it writing to it. Fix by adding a try except statement or maybe making a module manage the saving?
-                        DLeftMouseClicks = DData["Today's LClicks"]
-                        DRightMouseClicks = DData["Today's RClicks"]
-                        DMiddleMouseClicks = DData["Today's MClicks"]
-                        DMouseScrolls = DData["Today's Scrolls"]
-                        DLetters = DData["Today's letter"]
-                        DKeyPresses = DData["Today's KeyPress"]
+                    try:
+                        with open("DailyData.json") as File: # read the data from the file and assign variables to it
+                            DData = json.loads(File.read()) #BUG: This will sometimes error because it apparently finds the file empty possibly because the other script it writing to it. Fix by adding a try except statement or maybe making a module manage the saving?
+                            File.close() # Added try and except statement so GUI won't freeze #comment by Misanthropik
+                            DLeftMouseClicks = DData["Today's LClicks"]
+                            DRightMouseClicks = DData["Today's RClicks"]
+                            DMiddleMouseClicks = DData["Today's MClicks"]
+                            DMouseScrolls = DData["Today's Scrolls"]
+                            DLetters = DData["Today's Letters"]
+                            DKeyPresses = DData["Today's KeyPress"]
+                    except json.JSONDecodeError:
+                        pass
 
 
                     # updating the window text
@@ -113,13 +119,17 @@ def OpenStatsWindow():
                 StatsOpen = False
                 break
             if event == 'Reset': # evokes reset.py to reset values when 'Reset' button is called.
-                if sg.popup_yes_no("Reset Today's values?") == 'Yes':
-                    with open("getpid.txt",  encoding = 'utf-8') as f:
-                        pid = f.read()
-                        pidint = int(pid) # get main.py process id
-                        os.system("start cmd /c python reset.py")
-                        os.kill(pidint, signal.SIGTERM) # kill main.py
+                if sg.popup_yes_no("Reset Today's values?\nNote: will restart,\n         check systray",  title= "Reset") == 'Yes':
+                    reset.File()
+                    os._exit(1)
                 StatsOpen = True
+            if event == "Today's": # Displays Daily Letters stats;
+                reset.DailyShowCase()
+                StatsOpen = True
+            if event == 'Lifetime':  # Display LIfetime Letters stats;
+                reset.ShowCase()
+                StatsOpen = True
+
 
 
             
