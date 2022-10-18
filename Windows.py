@@ -120,7 +120,7 @@ def OpenStatsWindow():
                 break
             if event == 'Reset': # evokes reset.py to reset values when 'Reset' button is called.
                 if sg.popup_yes_no("Reset Today's values?\nNote: will restart,\n         check systray",  title= "Reset") == 'Yes':
-                    reset.File()
+                    reset.ResetDailyData()
                     os._exit(1)
                 StatsOpen = True
             if event == "Today's": # Displays Daily Letters stats;
