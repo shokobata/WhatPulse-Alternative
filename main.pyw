@@ -12,7 +12,7 @@ try:
     Me = singleton.SingleInstance()  # To prevent multiple instances from running at the same time
 except tendo.singleton.SingleInstanceException:
     Windows.OpenStatsWindow()  # BUG: I think this is better than nothing happening but this causes a minor bug which is that 2 stats windows can be opened at the same time. Like if this got executed and then the user clicked on "Show stats". Consider fixing it by somehow telling the already running script to show the stats window. I will be ignoring this bug for now.
-    reset.File()
+    reset.ResetDailyData()
     reset.DateAndFile()
     exit()
 
