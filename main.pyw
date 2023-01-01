@@ -1,5 +1,5 @@
-# last edited 10-10-2022
-import threading, json, Windows, os, tendo, ctypes, reset
+# last edited 30-12-2022
+import threading, json, Windows, os, tendo, ctypes, reset, time
 from infi.systray import SysTrayIcon
 from pynput import mouse, keyboard
 from tendo import singleton
@@ -19,36 +19,16 @@ except tendo.singleton.SingleInstanceException:
 
 Lock = threading.Lock()  # used later to prevent a race condition from occuring.
 
-
-def TodayDate():
-    try:
-        todayvar = dater.today() # Updates Date, to be used to reset the Daily file.
-        DVariables.DDate = str(todayvar)
-        DVariables.DLastDateValue = DVariables.DDate
-        Dsav()
-    except:
-        pass
-
-TodayDate()
-
-def ResetValues(): # Recovers Date from the file and resets if date isn't concurrent.
-    threading.Timer(5.0, ResetValues).start()
-    datevar = date.today()
-    todaydate = str(datevar)
-    try:
-        with open('DailyData.json', encoding='utf8') as loaddate:
-            myDict = json.load(loaddate)
-            datescope = myDict["Date"]
-        if todaydate == datescope:
-            pass
-        else:
-            reset.DateAndFile()
-            os._exit(1)
-    except json.JSONDecodeError:
-        pass
-
-ResetValues()
-
+def CheckDate():
+    while True:
+        time.sleep(1)
+        with open('DailyData.json', encoding='utf8') as File:
+            FileData = json.load(File)
+            if FileData["Date"] != str(date.today()): # compares today's date to the date in DailyData.json
+                print("It is different")
+                reset.ResetDailyData()
+                global DVariables
+                DVariables = DailyVariablesClass()
 
 class VariablesClass():
 	def __init__(self):
@@ -106,14 +86,12 @@ class DailyVariablesClass():
                 self.DMouseScrolls = DData["Today's Scrolls"]
                 self.DKeyPresses = DData["Today's KeyPress"]
                 self.DLetters = DData["Today's Letters"]
-                self.DDate = DData["Date"]
                 # Need those variables so that I can throttle how many times it saves to the file
                 self.DLastLeftMouseClicksValue = self.DLeftMouseClicks
                 self.DLastRightMouseClicksValue = self.DRightMouseClicks
                 self.DLastMiddleMouseClicksValue = self.DMiddleMouseClicks
                 self.DLastMouseScrollsValue = self.DMouseScrolls
                 self.DLastKeyPressesValue = self.DKeyPresses
-                self.DLastDateValue = self.DDate
             with open("DailyData.backup", "w") as DFile:
                 DFile.write(json.dumps(DData, indent=4))
                 DFile.flush()
@@ -178,7 +156,7 @@ def Dsav():
             DData["Today's Scrolls"] = DVariables.DMouseScrolls
             DData["Today's KeyPress"] = DVariables.DKeyPresses
             DData["Today's Letters"] = DVariables.DLetters
-            DData["Date"] = DVariables.DDate
+            DData["Date"] = str(date.today())
             DFile.write(json.dumps(DData, indent=4))
             DFile.flush()
             DFile.close()
@@ -249,12 +227,11 @@ systray.start()
 
 MouseThread = threading.Thread(target=InitializeMouse, args=())  # Create a thread for the mouse
 KeyboardThread = threading.Thread(target=InitializeKeyboard, args=())  # Create a thread for the keyboard
+DateCheckerThread = threading.Thread(target=CheckDate, args=()) # create a thread for the CheckDate function which will check if today's date is different than the one in DailyData.json
 
 # start both threads
 MouseThread.start()
 KeyboardThread.start()
-MouseThread.join()
+DateCheckerThread.start()
+MouseThread.join() # continue: possibly delete these .join() statements cuz they seem pointless
 KeyboardThread.join()
-
-
-

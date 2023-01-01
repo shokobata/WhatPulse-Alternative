@@ -1,3 +1,4 @@
+# Last modified: 30/12/2022
 import os
 import json
 import PySimpleGUI as sg
@@ -42,38 +43,14 @@ def ResetDailyData():
         "Today's MClicks": 0,
         "Today's Scrolls": 0,
         "Today's KeyPress": 0,
-        "Today's Letters": {}
+        "Today's Letters": {},
+        "Date": str(date.today())
     }
 
     for letter in ascii_lowercase:
         newData["Today's Letters"][letter] = 0
 
-    with open('DailyData.json', 'r+', encoding='utf8') as f:
-        newData["Date"] = json.load(f)["Date"]
-
-        f.seek(0)
+    with open('DailyData.json', 'w', encoding='utf8') as f:
         json.dump(newData, f, indent=4)
-        f.truncate()
     
-    print("WARNING! Daily file has been reset!\nRestarting WhatPulse Alternative...")
-    os.startfile("main.pyw")
-
-
-def DateAndFile():
-    todaysDate = str(date.today())
-
-    with open('DailyData.json', encoding='utf8') as loaddate:
-        myDict = json.load(loaddate)
-        savedDate = myDict["Date"]
-
-        if todaysDate != savedDate:
-            with open('DailyData.json', 'r+', encoding='utf8') as f:
-                storedData = json.load(f)
-                storedData["Date"] = todaysDate
-
-                f.seek(0)
-                json.dump(f, storedData, indent=4)
-                f.truncate()
-
-        ResetDailyData()
-
+    print("WARNING!")

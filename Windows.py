@@ -1,4 +1,4 @@
-# last edited 10-10-2022
+# last edited 30-12-2022
 import PySimpleGUI as sg
 import json, time, threading, os, reset
 sg.theme('DarkAmber')
@@ -43,11 +43,7 @@ def OpenStatsWindow():
                 [sg.Text("Key Presses: "+"{:,}".format(KeyPresses), key="_KeyPresses_", size=(21,1))],
                 [sg.Text("Most Pressed letter: "+max(Letters, key=Letters.get).upper(), key="_Letters_", size=(21,1))],
                 [sg.Text("Today's KeyPress: "+"{:,}".format(DKeyPresses), key="_DKeyPresses_", size=(21,1))],
-                [sg.Text("Today's letter: "+max(DLetters, key=DLetters.get).upper(), key="_DLetters_", size=(21,1))],
-                [sg.Text("")],
-                [sg.Text("Reset", text_color="red")],
-                [sg.Text("will reset Today's data")],
-                [sg.pin(sg.Button("Reset", button_color=("white","red"))), sg.pin(sg.Button("Today's", button_color=("white","green"))), sg.pin(sg.Button("Lifetime", button_color=("white","green")))]]
+                [sg.Text("Today's letter: "+max(DLetters, key=DLetters.get).upper(), key="_DLetters_", size=(21,1))]]
 
 
         layout = [
@@ -108,7 +104,7 @@ def OpenStatsWindow():
                         continue
                 if StatsOpen == False:
                     break
-                time.sleep(1) # making the loop run every second or else lag
+                time.sleep(.5) # making the loop run every second or else lag
 
         UpdateWindowThread = threading.Thread(target=UpdateWindow, args=(), daemon=True) # tbh, I don't remember why I added the daemon argument but hey it works so I will just leave it as it is.
         UpdateWindowThread.start()
