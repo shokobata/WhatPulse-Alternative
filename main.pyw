@@ -1,12 +1,11 @@
-# last edited 30-12-2022
-import threading, json, Windows, os, tendo, ctypes, reset, time
+# last edited 7-1-2023
+import threading, json, Windows, os, tendo, ctypes, reset, time, psutil
 from infi.systray import SysTrayIcon
 from pynput import mouse, keyboard
 from tendo import singleton
 from datetime import date
 
-os.chdir(
-    os.path.dirname(os.path.abspath(__file__)))  # changing the working directory to the directory where the script is
+os.chdir(os.path.dirname(os.path.abspath(__file__)))  # changing the working directory to the directory where the script is
 
 try:
     Me = singleton.SingleInstance()  # To prevent multiple instances from running at the same time
@@ -19,56 +18,59 @@ except tendo.singleton.SingleInstanceException:
 
 Lock = threading.Lock()  # used later to prevent a race condition from occuring.
 
-def CheckDate():
+def CheckDate(): # Checks if the date in the DailyData.json is the same as the current system date. If it is different then it resets the values and updates the date
     while True:
         time.sleep(1)
         with open('DailyData.json', encoding='utf8') as File:
             FileData = json.load(File)
             if FileData["Date"] != str(date.today()): # compares today's date to the date in DailyData.json
-                print("It is different")
                 reset.ResetDailyData()
                 global DVariables
                 DVariables = DailyVariablesClass()
 
 class VariablesClass():
-	def __init__(self):
-		try:
-			with open("Data.json") as File: # read the data from the file and assign variables to it
-				Data = json.loads(File.read())
-				self.LeftMouseClicks = Data["Left Clicks"]
-				self.RightMouseClicks = Data["Right Clicks"]
-				self.MiddleMouseClicks = Data["Middle Clicks"]
-				self.MouseScrolls = Data["Scrolls"]
-				self.KeyPresses = Data["Key Presses"]
-				self.Letters = Data["Letters"]
-				# Need those variables so that I can throttle how many times it saves to the file
-				self.LastLeftMouseClicksValue = self.LeftMouseClicks
-				self.LastRightMouseClicksValue = self.RightMouseClicks
-				self.LastMiddleMouseClicksValue = self.MiddleMouseClicks
-				self.LastMouseScrollsValue = self.MouseScrolls
-				self.LastKeyPressesValue = self.KeyPresses
-			with open("Data.backup", "w") as File:
-				File.write(json.dumps(Data, indent=4))
-		except:
-			with open("Data.backup") as File: # read the data from the file and assign variables to it
-				Data = json.loads(File.read())
-			with open("Data.json", "w") as File: # opening and writing data in the file
-				File.write(json.dumps(Data, indent=4))
-			with open("Data.json") as File: # read the data from the file and assign variables to it
-				Data = json.loads(File.read())
-				self.LeftMouseClicks = Data["Left Clicks"]
-				self.RightMouseClicks = Data["Right Clicks"]
-				self.MiddleMouseClicks = Data["Middle Clicks"]
-				self.MouseScrolls = Data["Scrolls"]
-				self.KeyPresses = Data["Key Presses"]
-				self.Letters = Data["Letters"]
-				# Need those variables so that I can throttle how many times it saves to the file
-				self.LastLeftMouseClicksValue = self.LeftMouseClicks
-				self.LastRightMouseClicksValue = self.RightMouseClicks
-				self.LastMiddleMouseClicksValue = self.MiddleMouseClicks
-				self.LastMouseScrollsValue = self.MouseScrolls
-				self.LastKeyPressesValue = self.KeyPresses
-			ctypes.windll.user32.MessageBoxW(0, u"Error: The save file seems corrupted. Loaded backup instead.", u"Error", 0) # used this instead of pysimplegui to prevent "RuntimeError: main thread is not in main loop" error
+    def __init__(self):
+        try:
+            with open("Data.json") as File: # read the data from the file and assign variables to it
+                Data = json.loads(File.read())
+                self.LeftMouseClicks = Data["Left Clicks"]
+                self.RightMouseClicks = Data["Right Clicks"]
+                self.MiddleMouseClicks = Data["Middle Clicks"]
+                self.MouseScrolls = Data["Scrolls"]
+                self.KeyPresses = Data["Key Presses"]
+                self.Letters = Data["Letters"]
+                self.Upload = Data["Upload"]
+                self.Download = Data["Download"]
+                # Need those variables so that I can throttle how many times it saves to the file
+                self.LastLeftMouseClicksValue = self.LeftMouseClicks
+                self.LastRightMouseClicksValue = self.RightMouseClicks
+                self.LastMiddleMouseClicksValue = self.MiddleMouseClicks
+                self.LastMouseScrollsValue = self.MouseScrolls
+                self.LastKeyPressesValue = self.KeyPresses
+            with open("Data.backup", "w") as File:
+                File.write(json.dumps(Data, indent=4))
+        except:
+            with open("Data.backup") as File: # read the data from the file and assign variables to it
+                Data = json.loads(File.read())
+            with open("Data.json", "w") as File: # opening and writing data in the file
+                File.write(json.dumps(Data, indent=4))
+            with open("Data.json") as File: # read the data from the file and assign variables to it
+                Data = json.loads(File.read())
+                self.LeftMouseClicks = Data["Left Clicks"]
+                self.RightMouseClicks = Data["Right Clicks"]
+                self.MiddleMouseClicks = Data["Middle Clicks"]
+                self.MouseScrolls = Data["Scrolls"]
+                self.KeyPresses = Data["Key Presses"]
+                self.Letters = Data["Letters"]
+                self.Upload = Data["Upload"]
+                self.Download = Data["Download"]
+                # Need those variables so that I can throttle how many times it saves to the file
+                self.LastLeftMouseClicksValue = self.LeftMouseClicks
+                self.LastRightMouseClicksValue = self.RightMouseClicks
+                self.LastMiddleMouseClicksValue = self.MiddleMouseClicks
+                self.LastMouseScrollsValue = self.MouseScrolls
+                self.LastKeyPressesValue = self.KeyPresses
+            ctypes.windll.user32.MessageBoxW(0, u"Error: The save file seems corrupted. Loaded backup instead.", u"Error", 0) # used this instead of pysimplegui to prevent "RuntimeError: main thread is not in main loop" error
 
 
 Variables = VariablesClass()
@@ -117,9 +119,7 @@ class DailyVariablesClass():
                 self.DLastMouseScrollsValue = self.DMouseScrolls
                 self.DLastKeyPressesValue = self.DKeyPresses
                 self.DLastDateValue = self.DDate
-            ctypes.windll.user32.MessageBoxW(0, u"Error: The save file seems corrupted. Loaded backup instead.",
-                                             u"Error",
-                                             0)  # used this instead of pysimplegui to prevent "RuntimeError: main thread is not in main loop" error
+            ctypes.windll.user32.MessageBoxW(0, u"Error: The save file seems corrupted. Loaded backup instead.",    u"Error",0 )  # used this instead of pysimplegui to prevent "RuntimeError: main thread is not in main loop" error
 
 
 DVariables = DailyVariablesClass()
@@ -129,7 +129,7 @@ def Quit(systray):
     os._exit(1)  # I have no idea what the heck this does but it terminates all the running threads which is what I need and apparently I need to have an int as an argument and idk whats the difference between each number but 1 worked so thats what I used.
 
 
-def ShowStats(systray):
+def ShowStats(systray): # Opens the GUI using the Windows.py library
     Windows.OpenStatsWindow()
 
 
@@ -143,6 +143,8 @@ def Save():
             Data["Scrolls"] = Variables.MouseScrolls
             Data["Key Presses"] = Variables.KeyPresses
             Data["Letters"] = Variables.Letters
+            Data["Upload"] = Variables.Upload
+            Data["Download"] = Variables.Download
             File.write(json.dumps(Data, indent=4))
 
 
@@ -201,7 +203,6 @@ def InitializeMouse():
 
 def InitializeKeyboard():
     def OnRelease(key):
-
         Variables.KeyPresses += 1
         DVariables.DKeyPresses += 1
         # determine if a letter has been pressed and increase the count for that specific letter
@@ -219,19 +220,28 @@ def InitializeKeyboard():
     with keyboard.Listener(on_release=OnRelease) as KeyboardListener:
         KeyboardListener.join()
 
+def Wifi():
+    Oldnetio = psutil.net_io_counters(pernic=True)["Wi-Fi"] # old network stats
+    while True:
+        netio = psutil.net_io_counters(pernic=True)["Wi-Fi"] # current network stats
+        Variables.Download = round((netio[1] - Oldnetio[1]) / 1024 / 1024 / 1024, 2) # First we subtract the old stats from the current stats to get the accurate stats since the launch of the program. Then we divide by 1024 3 times to convert from bytes to gigabytes
+        Variables.Upload = round((netio[0] - Oldnetio[0]) / 1024 / 1024 / 1024, 2)
+        time.sleep(1)
 
 # Launching the system tray
 menu_options = (("Show Stats", None, ShowStats),)
-systray = SysTrayIcon("icon.ico", "Whatpulse Alternative v11", menu_options, on_quit=Quit)
+systray = SysTrayIcon("icon.ico", "Whatpulse Alternative v12", menu_options, on_quit=Quit)
 systray.start()
 
 MouseThread = threading.Thread(target=InitializeMouse, args=())  # Create a thread for the mouse
 KeyboardThread = threading.Thread(target=InitializeKeyboard, args=())  # Create a thread for the keyboard
 DateCheckerThread = threading.Thread(target=CheckDate, args=()) # create a thread for the CheckDate function which will check if today's date is different than the one in DailyData.json
+WifiThread = threading.Thread(target=Wifi, args=())
 
 # start both threads
 MouseThread.start()
 KeyboardThread.start()
 DateCheckerThread.start()
+WifiThread.start()
 MouseThread.join() # continue: possibly delete these .join() statements cuz they seem pointless
 KeyboardThread.join()

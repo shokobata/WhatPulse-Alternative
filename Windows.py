@@ -1,4 +1,4 @@
-# last edited 30-12-2022
+# last edited 7-1-2023
 import PySimpleGUI as sg
 import json, time, threading, os, reset
 sg.theme('DarkAmber')
@@ -19,6 +19,8 @@ def OpenStatsWindow():
             MouseScrolls = Data["Scrolls"]
             KeyPresses = Data["Key Presses"]
             Letters = Data["Letters"]
+            Upload = Data["Upload"]
+            Download = Data["Download"]
 
         with open("DailyData.json") as DFile: # read the data from the file and assign variables to it
             DData = json.loads(DFile.read())
@@ -43,19 +45,22 @@ def OpenStatsWindow():
                 [sg.Text("Key Presses: "+"{:,}".format(KeyPresses), key="_KeyPresses_", size=(21,1))],
                 [sg.Text("Most Pressed letter: "+max(Letters, key=Letters.get).upper(), key="_Letters_", size=(21,1))],
                 [sg.Text("Today's KeyPress: "+"{:,}".format(DKeyPresses), key="_DKeyPresses_", size=(21,1))],
-                [sg.Text("Today's letter: "+max(DLetters, key=DLetters.get).upper(), key="_DLetters_", size=(21,1))]]
+                [sg.Text("Today's letter: "+max(DLetters, key=DLetters.get).upper(), key="_DLetters_", size=(21,1))],
+                [sg.Image("wifi.png")],
+                [sg.Text("Total Download: " + "{:,}".format(Download) + "GB", key="_Download_", size=(18, 1))],
+                [sg.Text("Total Upload: " + "{:,}".format(Upload) + "GB", key="_Upload_", size=(18, 1))]]
 
 
         layout = [
             [sg.Column(col1, element_justification='c', justification="center"), sg.Column(col2, element_justification='c', justification="center", pad=(0,0))]
         ]
 
-        window = sg.Window('WhatPulse Alternative v11', layout, use_default_focus=False, finalize=True) # showing the window
+        window = sg.Window('WhatPulse Alternative v12', layout, use_default_focus=False, finalize=True, icon="icon.ico") # showing the window
 
         def UpdateWindow():
             StartTime = time.time() # Initial time
             while True:
-                if time.time() - StartTime >= 1 and StatsOpen: # Check if 1 second passed then update the window
+                if time.time() - StartTime >= .1 and StatsOpen: # Check if .1 seconds passed then update the window
                     StartTime = time.time() # Reset initial time
                     try:
                         with open("Data.json") as File: # read the data from the file and assign variables to it
@@ -67,6 +72,9 @@ def OpenStatsWindow():
                             MouseScrolls = Data["Scrolls"]
                             KeyPresses = Data["Key Presses"]
                             Letters = Data["Letters"]
+                            Upload = Data["Upload"]
+                            Download = Data["Download"]
+                            
                     except json.JSONDecodeError:
                         pass
 
@@ -98,13 +106,15 @@ def OpenStatsWindow():
                         window["_DRightClicks_"].update("Today's RClicks: "+"{:,}".format(DRightMouseClicks))
                         window["_DScrolls_"].update("Today's Scrolls: "+"{:,}".format(DMouseScrolls))
                         window["_DLetters_"].update("Today's letter: "+max(DLetters, key=DLetters.get).upper())
+                        window["_Download_"].update("Total Download: " + "{:,}".format(Download) + "GB")
+                        window["_Upload_"].update("Total Upload: " + "{:,}".format(Upload) + "GB")
                     except NameError:
                         continue
                     except RuntimeError:
                         continue
                 if StatsOpen == False:
                     break
-                time.sleep(.5) # making the loop run every second or else lag
+                time.sleep(0.1) # making the loop run every .1 seconds or else lag
 
         UpdateWindowThread = threading.Thread(target=UpdateWindow, args=(), daemon=True) # tbh, I don't remember why I added the daemon argument but hey it works so I will just leave it as it is.
         UpdateWindowThread.start()
@@ -114,6 +124,9 @@ def OpenStatsWindow():
             if event == sg.WIN_CLOSED: # check if the window is closed
                 StatsOpen = False
                 break
+
+            # CONTINUE: the three following if statements are currently useless, I mistakenly deleted the code that makes it work. I plan to add
+            # that feature later though.
             if event == 'Reset': # evokes reset.py to reset values when 'Reset' button is called.
                 if sg.popup_yes_no("Reset Today's values?\nNote: will restart,\n         check systray",  title= "Reset") == 'Yes':
                     reset.ResetDailyData()
@@ -122,11 +135,12 @@ def OpenStatsWindow():
             if event == "Today's": # Displays Daily Letters stats;
                 reset.DailyShowCase()
                 StatsOpen = True
-            if event == 'Lifetime':  # Display LIfetime Letters stats;
+            if event == 'Lifetime':  # Display LIfetime Letters stats; 
                 reset.ShowCase()
                 StatsOpen = True
 
 
 
             
-        window.close(); del window # "The delete helps with a problem multi-threaded application encounter where tkinter complains that it is being called from the wrong thread (not the program's main thread)", I don't think it helped tho.
+        window.close(); del window # "The delete helps with a problem multi-threaded application encounter where tkinter complains that
+        # it is being called from the wrong thread (not the program's main thread)", I don't think it helped tho.

@@ -2,3 +2,4 @@ tendo
 PySimpleGUI
 infi.systray
 pynput
+psutil

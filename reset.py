@@ -1,11 +1,11 @@
-# Last modified: 30/12/2022
+# Last modified: 4-1-2023
 import os
 import json
 import PySimpleGUI as sg
 from datetime import date
 from string import ascii_lowercase
 
-def DailyShowCase():
+def DailyShowCase(): # CONTINUE: This function is currently useless. I plan to use it gain later on
     """read data from DailyData.json and display it in a popup window"""
 
     with open("DailyData.json") as f:  # 
@@ -20,7 +20,7 @@ def DailyShowCase():
                      auto_close_duration=30,  size=(12, 15))
 
 
-def ShowCase():
+def ShowCase(): # CONTINUE: This function is currently useless. I plan to use it gain later on
     """read data from Data.json and display it in a popup window"""
 
     with open("Data.json") as File:
@@ -52,5 +52,3 @@ def ResetDailyData():
 
     with open('DailyData.json', 'w', encoding='utf8') as f:
         json.dump(newData, f, indent=4)
-    
-    print("WARNING!")
